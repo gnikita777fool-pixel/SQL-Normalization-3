@@ -1,0 +1,341 @@
+    1  cd ~
+    2  mkdir -p hello-pages/{.github/workflows,public,src/components} &&  cd hello-pages &&  cat > package.json << 'EOF'
+    3   {
+    4     "name": "hello-pages", "private": true, "version": "0.1.0", "type": "module",
+    5     "scripts": {
+    6       "dev": "vite", "build": "tsc -b && vite build", "preview": "vite preview",
+    7       "lint": "eslint .", "type-check": "tsc --noEmit", "test": "vitest"
+    8     },
+    9     "dependencies": { "react": "^18.3.1", "react-dom": "^18.3.1" },
+   10     "devDependencies": {
+   11       "@eslint/js": "^9.13.0", "@testing-library/jest-dom": "^6.6.2",
+   12       "@testing-library/react": "^16.0.1", "@types/react": "^18.3.11",
+   13       "@types/react-dom": "^18.3.1", "@vitejs/plugin-react": "^4.3.3",
+   14       "eslint": "^9.13.0", "eslint-plugin-react-hooks": "^5.0.0",
+   15       "eslint-plugin-react-refresh": "^0.4.13", "globals": "^15.11.0",
+   16       "jsdom": "^25.0.1", "typescript": "~5.6.2", "typescript-eslint": "^8.11.0",
+   17       "vite": "^5.4.9", "vitest": "^2.1.3"
+   18     }
+   19   }
+   20   EOF
+   21   cat > vite.config.ts << 'EOF'
+   22   import { defineConfig } from 'vitest/config'
+   23   import react from '@vitejs/plugin-react'
+   24   export default defineConfig({
+   25     plugins: [react()],
+   26     base: '/hello-pages/', // ⚠️ ВАЖНО: имя должно совпадать с репозиторием!
+   27     test: { environment: 'jsdom', globals: true, setupFiles: './src/setupTests.ts' },
+   28   })
+   29   EOF
+   30   cat > tsconfig.json << 'EOF'
+   31   { "files": [], "references": [ { "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" } ] }
+   32   EOF
+   33   cat > tsconfig.app.json << 'EOF'
+   34   {
+   35     "compilerOptions": {
+   36       "composite": true, "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+   37       "target": "ES2020", "useDefineForClassFields": true, "lib": ["ES2020", "DOM", "DOM.Iterable"],
+   38       "module": "ESNext", "skipLibCheck": true, "moduleResolution": "bundler",
+   39       "allowImportingTsExtensions": true, "isolatedModules": true, "moduleDetection": "force",
+   40       "noEmit": true, "jsx": "react-jsx", "strict": true, "noUnusedLocals": true,
+   41       "noUnusedParameters": true, "noFallthroughCasesInSwitch": true,
+   42       "types": ["vitest/globals", "@testing-library/jest-dom"]
+   43     },
+   44     "include": ["src"]
+   45   }
+   46   EOF
+   47   cat > tsconfig.node.json << 'EOF'
+   48   {
+   49     "compilerOptions": {
+   50       "composite": true, "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+   51       "target": "ES2022", "lib": ["ES2023"], "module": "ESNext", "skipLibCheck": true,
+   52       "moduleResolution": "bundler", "allowImportingTsExtensions": true,
+   53       "isolatedModules": true, "moduleDetection": "force", "noEmit": true, "strict": true
+   54     },
+   55     "include": ["vite.config.ts"]
+   56   }
+   57   EOF
+   58   cat > eslint.config.js << 'EOF'
+   59   import js from '@eslint/js'; import globals from 'globals'; import reactHooks from 'eslint-plugin-react-hooks';
+   60   import reactRefresh from 'eslint-plugin-react-refresh'; import tseslint from 'typescript-eslint';
+   61   export default tseslint.config(
+   62     { ignores: ['dist'] },
+   63     { extends: [js.configs.recommended, ...tseslint.configs.recommended], files: ['**/*.{ts,tsx}'],
+   64       languageOptions: { ecmaVersion: 2020, globals: globals.browser },
+   65       plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },
+   66       rules: { ...reactHooks.configs.recommended.rules, 'react-refresh/only-export-components': ['warn', { allowConstantExport: true }] } }
+   67   )
+   68   EOF
+   69   cat > index.html << 'EOF'
+   70   <!doctype html><html lang="ru"><head><meta charset="UTF-8" /><link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+   71   <meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Hello Pages</title></head>
+   72   <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+   73   EOF
+   74   cat > public/favicon.svg << 'EOF'
+   75   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="75" font-size="75">🚀</text></svg>
+   76   EOF
+   77   cat > src/main.tsx << 'EOF'
+   78   import { StrictMode } from 'react'; import { createRoot } from 'react-dom/client';
+   79   import App from './App.tsx'; import './index.css';
+   80   createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
+   81   EOF
+   82   cat > src/App.tsx << 'EOF'
+   83   import { Header } from './components/Header'; import { About } from './components/About'; import { Projects } from './components/Projects';
+   84   export default function App() {
+   85     return (<div className="app"><Header /><main><About /><Projects /></main>
+   86     <footer className="footer"><p>Deployed with ❤️ to GitHub Pages</p></footer></div>)
+   87   }
+   88   EOF
+   89   cat > src/components/Header.tsx << 'EOF'
+   90   export function Header() { return (<header className="header"><h1>🚀 Hello Pages</h1><p className="subtitle">Демо-проект для GitHub Pages</p></header>) }
+   91   EOF
+   92   cat > src/components/About.tsx << 'EOF'
+   93   export function About() { return (<section className="card"><h2>О проекте</h2><p>Этот сайт автоматически деплоится на <strong>GitHub Pages</strong> при push в <code>main</code>.</p></section>) }
+   94   EOF
+   95   cat > src/components/Projects.tsx << 'EOF'
+   96   const projects = [ { name: 'Go CLI', desc: 'Публикация бинарников' }, { name: 'Go GUI', desc: 'Fyne + MSYS2' }, { name: 'Hello Pages', desc: 'Деплой на GitHub Pages' } ];
+   97   export function Projects() { return (<section className="card"><h2>Проекты</h2><ul>{projects.map((p) => (<li key={p.name}><strong>{p.name}</strong> — {p.desc}</li>))}</ul></section>) }
+   98   EOF
+   99   cat > src/App.test.tsx << 'EOF'
+  100   import { describe, it, expect } from 'vitest'; import { render, screen } from '@testing-library/react'; import App from './App';
+  101   describe('App', () => {
+  102     it('renders header', () => { render(<App />); expect(screen.getByRole('heading', { level: 1, name: /Hello Pages/i })).toBeInTheDocument(); });
+  103     it('renders about', () => { render(<App />); expect(screen.getByRole('heading', { level: 2, name: /О проекте/i })).toBeInTheDocument(); });
+  104   })
+  105   EOF
+  106   cat > src/setupTests.ts << 'EOF'
+  107   import '@testing-library/jest-dom'
+  108   EOF
+  109   cat > src/index.css << 'EOF'
+  110   * { box-sizing: border-box; margin: 0; padding: 0; }
+  111   body { font-family: sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+  112   .app { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+  113   .header { text-align: center; color: white; margin-bottom: 2rem; }
+  114   .header h1 { font-size: 3rem; margin-bottom: 0.5rem; }
+  115   .card { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  116   .card h2 { margin-bottom: 0.75rem; color: #764ba2; }
+  117   .footer { text-align: center; color: white; margin-top: 2rem; opacity: 0.8; }
+  118   EOF
+  119   cat > .github/workflows/ci-cd.yml << 'EOF'
+  120   name: CI/CD
+  121   on:
+  122     push: { branches: [ main ] }
+  123     pull_request:
+  124   permissions: { contents: read, pages: write, id-token: write }
+  125   concurrency: { group: "pages", cancel-in-progress: false }
+  126   jobs:
+  127     ci:
+  128       runs-on: ubuntu-latest
+  129       steps:
+  130         - uses: actions/checkout@v4
+  131         - uses: actions/setup-node@v4
+  132           with: { node-version: '20', cache: npm }
+  133         - run: npm ci
+  134         - run: npm run lint
+  135         - run: npm run type-check
+  136         - run: npm test -- --run
+  137         - run: npm run build
+  138         - uses: actions/upload-artifact@v4
+  139           with: { name: dist, path: dist, retention-days: 1 }
+  140     deploy:
+  141       needs: ci
+  142       if: github.ref == 'refs/heads/main'
+  143       runs-on: ubuntu-latest
+  144       environment: { name: github-pages, url: ${{ steps.deployment.outputs.page_url }} }
+  145       steps:
+  146         - uses: actions/download-artifact@v4
+  147           with: { name: dist, path: dist }
+  148         - uses: actions/configure-pages@v5
+  149         - uses: actions/upload-pages-artifact@v3
+  150           with: { path: ./dist }
+  151         - id: deployment
+  152           uses: actions/deploy-pages@v4
+  153   EOF
+  154   cat > .gitignore << 'EOF'
+  155   node_modules/
+  156   dist/
+  157   .env
+  158   .idea/
+  159   .vscode/
+  160   *.local
+  161   .DS_Store
+  162   coverage/
+  163   *.tsbuildinfo
+  164   EOF
+  165   echo "✅ Проект создан!"
+  166  cd ~
+  167  mkdir -p hello-pages/{.github/workflows,public,src/components} &&  cd hello-pages &&  cat > package.json << 'EOF'
+  168   {
+  169     "name": "hello-pages", "private": true, "version": "0.1.0", "type": "module",
+  170     "scripts": {
+  171       "dev": "vite", "build": "tsc -b && vite build", "preview": "vite preview",
+  172       "lint": "eslint .", "type-check": "tsc --noEmit", "test": "vitest"
+  173     },
+  174     "dependencies": { "react": "^18.3.1", "react-dom": "^18.3.1" },
+  175     "devDependencies": {
+  176       "@eslint/js": "^9.13.0", "@testing-library/jest-dom": "^6.6.2",
+  177       "@testing-library/react": "^16.0.1", "@types/react": "^18.3.11",
+  178       "@types/react-dom": "^18.3.1", "@vitejs/plugin-react": "^4.3.3",
+  179       "eslint": "^9.13.0", "eslint-plugin-react-hooks": "^5.0.0",
+  180       "eslint-plugin-react-refresh": "^0.4.13", "globals": "^15.11.0",
+  181       "jsdom": "^25.0.1", "typescript": "~5.6.2", "typescript-eslint": "^8.11.0",
+  182       "vite": "^5.4.9", "vitest": "^2.1.3"
+  183     }
+  184   }
+  185   EOF
+  186   cat > vite.config.ts << 'EOF'
+  187   import { defineConfig } from 'vitest/config'
+  188   import react from '@vitejs/plugin-react'
+  189   export default defineConfig({
+  190     plugins: [react()],
+  191     base: '/hello-pages/', // ⚠️ ВАЖНО: имя должно совпадать с репозиторием!
+  192     test: { environment: 'jsdom', globals: true, setupFiles: './src/setupTests.ts' },
+  193   })
+  194   EOF
+  195   cat > tsconfig.json << 'EOF'
+  196   { "files": [], "references": [ { "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" } ] }
+  197   EOF
+  198   cat > tsconfig.app.json << 'EOF'
+  199   {
+  200     "compilerOptions": {
+  201       "composite": true, "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+  202       "target": "ES2020", "useDefineForClassFields": true, "lib": ["ES2020", "DOM", "DOM.Iterable"],
+  203       "module": "ESNext", "skipLibCheck": true, "moduleResolution": "bundler",
+  204       "allowImportingTsExtensions": true, "isolatedModules": true, "moduleDetection": "force",
+  205       "noEmit": true, "jsx": "react-jsx", "strict": true, "noUnusedLocals": true,
+  206       "noUnusedParameters": true, "noFallthroughCasesInSwitch": true,
+  207       "types": ["vitest/globals", "@testing-library/jest-dom"]
+  208     },
+  209     "include": ["src"]
+  210   }
+  211   EOF
+  212   cat > tsconfig.node.json << 'EOF'
+  213   {
+  214     "compilerOptions": {
+  215       "composite": true, "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+  216       "target": "ES2022", "lib": ["ES2023"], "module": "ESNext", "skipLibCheck": true,
+  217       "moduleResolution": "bundler", "allowImportingTsExtensions": true,
+  218       "isolatedModules": true, "moduleDetection": "force", "noEmit": true, "strict": true
+  219     },
+  220     "include": ["vite.config.ts"]
+  221   }
+  222   EOF
+  223   cat > eslint.config.js << 'EOF'
+  224   import js from '@eslint/js'; import globals from 'globals'; import reactHooks from 'eslint-plugin-react-hooks';
+  225   import reactRefresh from 'eslint-plugin-react-refresh'; import tseslint from 'typescript-eslint';
+  226   export default tseslint.config(
+  227     { ignores: ['dist'] },
+  228     { extends: [js.configs.recommended, ...tseslint.configs.recommended], files: ['**/*.{ts,tsx}'],
+  229       languageOptions: { ecmaVersion: 2020, globals: globals.browser },
+  230       plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },
+  231       rules: { ...reactHooks.configs.recommended.rules, 'react-refresh/only-export-components': ['warn', { allowConstantExport: true }] } }
+  232   )
+  233   EOF
+  234   cat > index.html << 'EOF'
+  235   <!doctype html><html lang="ru"><head><meta charset="UTF-8" /><link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  236   <meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Hello Pages</title></head>
+  237   <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+  238   EOF
+  239   cat > public/favicon.svg << 'EOF'
+  240   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="75" font-size="75">🚀</text></svg>
+  241   EOF
+  242   cat > src/main.tsx << 'EOF'
+  243   import { StrictMode } from 'react'; import { createRoot } from 'react-dom/client';
+  244   import App from './App.tsx'; import './index.css';
+  245   createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
+  246   EOF
+  247   cat > src/App.tsx << 'EOF'
+  248   import { Header } from './components/Header'; import { About } from './components/About'; import { Projects } from './components/Projects';
+  249   export default function App() {
+  250     return (<div className="app"><Header /><main><About /><Projects /></main>
+  251     <footer className="footer"><p>Deployed with ❤️ to GitHub Pages</p></footer></div>)
+  252   }
+  253   EOF
+  254   cat > src/components/Header.tsx << 'EOF'
+  255   export function Header() { return (<header className="header"><h1>🚀 Hello Pages</h1><p className="subtitle">Демо-проект для GitHub Pages</p></header>) }
+  256   EOF
+  257   cat > src/components/About.tsx << 'EOF'
+  258   export function About() { return (<section className="card"><h2>О проекте</h2><p>Этот сайт автоматически деплоится на <strong>GitHub Pages</strong> при push в <code>main</code>.</p></section>) }
+  259   EOF
+  260   cat > src/components/Projects.tsx << 'EOF'
+  261   const projects = [ { name: 'Go CLI', desc: 'Публикация бинарников' }, { name: 'Go GUI', desc: 'Fyne + MSYS2' }, { name: 'Hello Pages', desc: 'Деплой на GitHub Pages' } ];
+  262   export function Projects() { return (<section className="card"><h2>Проекты</h2><ul>{projects.map((p) => (<li key={p.name}><strong>{p.name}</strong> — {p.desc}</li>))}</ul></section>) }
+  263   EOF
+  264   cat > src/App.test.tsx << 'EOF'
+  265   import { describe, it, expect } from 'vitest'; import { render, screen } from '@testing-library/react'; import App from './App';
+  266   describe('App', () => {
+  267     it('renders header', () => { render(<App />); expect(screen.getByRole('heading', { level: 1, name: /Hello Pages/i })).toBeInTheDocument(); });
+  268     it('renders about', () => { render(<App />); expect(screen.getByRole('heading', { level: 2, name: /О проекте/i })).toBeInTheDocument(); });
+  269   })
+  270   EOF
+  271   cat > src/setupTests.ts << 'EOF'
+  272   import '@testing-library/jest-dom'
+  273   EOF
+  274   cat > src/index.css << 'EOF'
+  275   * { box-sizing: border-box; margin: 0; padding: 0; }
+  276   body { font-family: sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+  277   .app { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+  278   .header { text-align: center; color: white; margin-bottom: 2rem; }
+  279   .header h1 { font-size: 3rem; margin-bottom: 0.5rem; }
+  280   .card { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  281   .card h2 { margin-bottom: 0.75rem; color: #764ba2; }
+  282   .footer { text-align: center; color: white; margin-top: 2rem; opacity: 0.8; }
+  283   EOF
+  284   cat > .github/workflows/ci-cd.yml << 'EOF'
+  285   name: CI/CD
+  286   on:
+  287     push: { branches: [ main ] }
+  288     pull_request:
+  289   permissions: { contents: read, pages: write, id-token: write }
+  290   concurrency: { group: "pages", cancel-in-progress: false }
+  291   jobs:
+  292     ci:
+  293       runs-on: ubuntu-latest
+  294       steps:
+  295         - uses: actions/checkout@v4
+  296         - uses: actions/setup-node@v4
+  297           with: { node-version: '20', cache: npm }
+  298         - run: npm ci
+  299         - run: npm run lint
+  300         - run: npm run type-check
+  301         - run: npm test -- --run
+  302         - run: npm run build
+  303         - uses: actions/upload-artifact@v4
+  304           with: { name: dist, path: dist, retention-days: 1 }
+  305     deploy:
+  306       needs: ci
+  307       if: github.ref == 'refs/heads/main'
+  308       runs-on: ubuntu-latest
+  309       environment: { name: github-pages, url: ${{ steps.deployment.outputs.page_url }} }
+  310       steps:
+  311         - uses: actions/download-artifact@v4
+  312           with: { name: dist, path: dist }
+  313         - uses: actions/configure-pages@v5
+  314         - uses: actions/upload-pages-artifact@v3
+  315           with: { path: ./dist }
+  316         - id: deployment
+  317           uses: actions/deploy-pages@v4
+  318   EOF
+  319   cat > .gitignore << 'EOF'
+  320   node_modules/
+  321   dist/
+  322   .env
+  323   .idea/
+  324   .vscode/
+  325   *.local
+  326   .DS_Store
+  327   coverage/
+  328   *.tsbuildinfo
+  329   EOF
+  330   echo "✅ Проект создан!"
+  331  cd Dbeaver/
+  332  docker compose stop
+  333  docker compose start
+  334  docker compose restart
+  335  docker compose config
+  336  exit
+  337  docker exec mysql-lab mysqldump -uroot -proot sales_norm > dump_after.sql
+  338  RENAME TABLE sales_unnormalized_2 TO sales_unnormalized_2_backup;
+  339  notee;   -- отключаем лог
+  340  exit;
+  341  history > actions.log
